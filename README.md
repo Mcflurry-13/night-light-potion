@@ -14,11 +14,19 @@ Prototype for a design-based research project on children's epistemic cognition 
 
 ## Run locally
 
-Static site, no build step. Open `index.html` in a browser, or serve the folder:
+Static preview, prewritten replies only:
 
 ```
 npx serve .
 ```
+
+Local preview with Granny Fern's live chat (Node 20.6 or newer):
+
+1. Create `.env.local` in this folder with one line: `ANTHROPIC_API_KEY=your-key`
+2. Run `node --env-file=.env.local dev-server.js`
+3. Open http://localhost:3000
+
+`.env.local` is ignored by git, so the key stays on your computer.
 
 ## Deploy
 
