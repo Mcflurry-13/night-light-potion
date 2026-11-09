@@ -70,6 +70,12 @@ section{display:flex;flex-direction:column;gap:14px}
 .chat.hl-kip mark{background:#FFD9E6}
 .hpanel .swatch{width:34px;height:14px;border-radius:6px;display:inline-block}
 .hpanel .asks{display:flex;gap:8px;flex-wrap:wrap}
+.why{display:flex;flex-direction:column;gap:10px}
+.why .pick{display:flex;gap:12px;align-items:center;background:#DDF4FF;border-radius:16px;padding:10px 14px;font-weight:800}
+.why .pick :is(svg,img){width:48px;height:48px}
+.why .opt{text-align:left;border:2px solid var(--line);border-bottom-width:4px;border-radius:14px;background:var(--bg);padding:10px 14px;font-weight:700}
+.why .opt:hover{background:var(--panel)}
+.why .row{display:flex;gap:8px;flex-wrap:wrap}
 .card.ping{border-style:dashed;border-color:var(--sky)}
 .note{display:flex;flex-direction:column;gap:6px;padding-top:12px;border-top:2px dashed var(--line)}
 .note:first-of-type{border-top:0;padding-top:0}
@@ -198,6 +204,19 @@ function countMarks(i,h,from){
   return S.chat[i].slice(from).filter(m=>m.who==='fern' && !m.pending)
     .reduce((n,m)=>n+((m.text.match(markRe(i,h))||[]).length),0);
 }
+function whyOptions(i){
+  const R = ROUNDS[i], seen = new Set(), out = [];
+  S.chat[i].filter(m=>m.who==='fern' && !m.pending).forEach(m=>{
+    const text = m.opening ? R.says.join(' ') : m.text;
+    text.split(/(?<=[.!?])\s+/).forEach(sent=>{
+      const t = sent.trim(), key = t.toLowerCase();
+      if(!t || seen.has(key)) return;
+      const lenses = Object.keys(HELPERS).filter(h=>markRe(i,h).test(t));
+      if(lenses.length){ seen.add(key); out.push({t, lenses}); }
+    });
+  });
+  return out.length > 6 ? out.slice(0,2).concat(out.slice(-4)) : out;
+}
 function fresh(i,h){ return (h in S.seen[i]) ? countMarks(i,h,S.seen[i][h]) : 0; }
 const HELPERS = {
   dot:{name:'Dot', q:'What are the facts?'},
@@ -270,7 +289,7 @@ const ROUNDS = [
 /* ---------- state ---------- */
 let S;
 function reset(){
-  S = {screen:'start', i:0, asked:[[],[],[]], pick:[null,null,null], draft:null, chat:[[],[],[]], busy:false, tab:[null,null,null], seen:[{},{},{}], toBottom:true, history:[[],[],[]], stirred:false, redo:false, log:[], t0:Date.now()};
+  S = {screen:'start', i:0, asked:[[],[],[]], pick:[null,null,null], draft:null, chat:[[],[],[]], busy:false, why:null, whyList:null, tab:[null,null,null], seen:[{},{},{}], toBottom:true, history:[[],[],[]], stirred:false, redo:false, log:[], t0:Date.now()};
 }
 function log(type, data){ S.log.push(Object.assign({t:Math.round((Date.now()-S.t0)/1000), type}, data||{})); }
 function opt(i,id){ return ROUNDS[i].options.find(o=>o.id===id); }
@@ -416,6 +435,28 @@ function viewRound(){
     <button class="card ${S.draft===o.id?'sel':''}" role="radio" aria-checked="${S.draft===o.id}" data-act="choose" data-id="${o.id}">
       ${o.art}<b>${o.label}</b>
     </button>`).join('');
+  let choose;
+  if(S.why){
+    const o = opt(S.i, S.why), list = whyOptions(S.i);
+    S.whyList = list;
+    choose = `<section class="why" aria-live="polite">
+      <h2>What helped you decide?</h2>
+      <div class="pick">${o.art}<span>You picked the ${o.label.toLowerCase()}.</span></div>
+      <p>Tap the words that helped you most.</p>
+      ${list.map((x,k)=>`<button class="opt" data-act="why" data-k="${k}">"${esc(x.t)}"</button>`).join('')}
+      <div class="row">
+        <button class="ghost" data-act="why" data-k="other">Something else</button>
+        <button class="ghost" data-act="why" data-k="unsure">I'm not sure</button>
+        <button class="ghost" data-act="why" data-k="skip">Skip</button>
+      </div>
+    </section>`;
+  } else {
+    choose = `<section>
+    <h2>Choose the ingredient</h2>
+    <div class="row3" role="radiogroup" aria-label="Ingredients">${options}</div>
+    <button class="primary" data-act="confirm" ${S.draft?'':'disabled'}>${S.redo?'Back to the pot':'Put it in the basket'}</button>
+  </section>`;
+  }
   return `<h1>Talk to Granny Fern, then choose</h1>
   <section>
     <div class="need"><small>THE RECIPE NEEDS</small>${R.need}</div>
@@ -426,11 +467,7 @@ function viewRound(){
     <div class="row3">${helpers}</div>
     <div class="answers" aria-live="polite">${answers}</div>
   </section>
-  <section>
-    <h2>Choose the ingredient</h2>
-    <div class="row3" role="radiogroup" aria-label="Ingredients">${options}</div>
-    <button class="primary" data-act="confirm" ${S.draft?'':'disabled'}>${S.redo?'Back to the pot':'Put it in the basket'}</button>
-  </section>`;
+  ${choose}`;
 }
 
 function results(){
@@ -519,7 +556,14 @@ app.addEventListener('click', e=>{
     if(!S.draft || S.busy) return;
     S.pick[S.i] = S.draft; S.history[S.i].push(S.draft);
     log('pick',{round:S.i+1, item:opt(S.i,S.draft).label, asked:S.asked[S.i].map(h=>HELPERS[h].name)});
-    S.draft = null;
+    S.why = S.draft; S.draft = null;
+    render();
+    const w = document.querySelector('.why'); if(w && w.scrollIntoView) w.scrollIntoView({block:'nearest'});
+  }
+  else if(act==='why'){
+    const k = b.dataset.k, x = /^\d+$/.test(k) ? S.whyList[+k] : null;
+    log('why',{round:S.i+1, item:opt(S.i,S.why).label, answer: x ? x.t : k, lenses: x ? x.lenses.map(h=>HELPERS[h].name) : []});
+    S.why = null; S.whyList = null;
     if(S.redo || S.i===2){ S.redo=false; S.stirred=false; go('pot'); }
     else { enter(S.i+1); go('round'); }
   }
