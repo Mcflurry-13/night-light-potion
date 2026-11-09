@@ -159,11 +159,11 @@ function pot(r){
 /* ---------- content ---------- */
 const HL = {dot:'#FFE4BF', bo:'#EAD9C6', kip:'#FFD9E6'};
 const LENS = {
-  dot:{ guide:'I marked the facts in what Granny Fern said. Look at each one. Is it about today, or about before?',
+  dot:{ guide:'I marked the facts in what Granny Fern said. Do they match the recipe and the rest of what she said? Are they still true today?',
         asks:[{k:'today', t:'Is it still like that today?'}] },
-  kip:{ guide:'I marked her reasons. Does each reason fit the thing she wants you to pick?',
+  kip:{ guide:'I marked her reasons. Does each reason really show what she wants you to pick?',
         asks:[{k:'reason', t:'Why do you think so?'}] },
-  bo:{ guide:'I marked who saw it and who said it. Were they there? When?',
+  bo:{ guide:'I marked who saw it and who said it. Were they there? When was that?',
         asks:[{k:'who', t:'Who saw it, and when?'},{k:'other', t:'Has anyone told you something different?'}] }
 };
 const MARKS = [
@@ -219,9 +219,9 @@ function whyOptions(i){
 }
 function fresh(i,h){ return (h in S.seen[i]) ? countMarks(i,h,S.seen[i][h]) : 0; }
 const HELPERS = {
-  dot:{name:'Dot', q:'What are the facts?'},
-  kip:{name:'Rae', q:'What is her reason?'},
-  bo:{name:'Bo', q:'Who said so?'}
+  dot:{name:'Dot', q:'Does it match?'},
+  kip:{name:'Rae', q:'Does the reason fit?'},
+  bo:{name:'Bo', q:'How does she know?'}
 };
 const ROUNDS = [
   { key:'smooth',
