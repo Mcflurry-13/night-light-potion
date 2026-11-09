@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Night Light Potion</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* layout: one centered reading column; stacked task blocks; chunky bordered cards with a thick bottom edge */
+  color-scheme: light;
+  --bg:#FFFFFF;
+  --ink:#4B4B4B;
+  --muted:#777777;
+  --line:#E5E5E5;
+  --panel:#F7F7F7;
+  --leaf:#58CC02;
+  --leaf-deep:#58A700;
+  --sky:#1CB0F6;
+  --sky-deep:#1899D6;
+  --night:#24313F;
+  --bad:#FF4B4B;
+  --display:"Nunito",ui-rounded,system-ui,sans-serif;
+  --body:"Nunito",ui-rounded,system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:18px;line-height:1.5}
+img{display:block;object-fit:contain}
+.hero{width:150px;height:150px;margin:0 auto}
+.win{width:120px;height:120px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--sky);outline-offset:3px}
+.wrap{max-width:740px;margin:0 auto;padding:24px 20px 64px;display:flex;flex-direction:column;gap:28px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand{font-family:var(--display);font-weight:900;font-size:20px;color:var(--leaf-deep)}
+.steps{display:flex;gap:8px;align-items:center;color:var(--muted);font-weight:700;font-size:15px}
+.steps i{width:28px;height:10px;border-radius:6px;background:var(--line);display:block}
+.steps i.done{background:var(--leaf)}
+.steps i.now{background:var(--sky)}
+.steps :is(svg,img){width:36px;height:42px}
+h1{font-family:var(--display);font-weight:800;font-size:30px;line-height:1.2;margin:0;text-align:center;text-wrap:balance}
+h2{font-family:var(--display);font-weight:800;font-size:21px;margin:0 0 12px}
+p{margin:0}
+.lead{text-align:center;color:var(--muted);font-weight:700;max-width:56ch;margin:0 auto}
+section{display:flex;flex-direction:column;gap:14px}
+.need{background:var(--panel);border-radius:18px;padding:16px 20px;font-weight:700}
+.need small{display:block;color:var(--muted);font-size:14px;font-weight:800;letter-spacing:.02em;margin-bottom:2px}
+.say{display:flex;gap:14px;align-items:flex-start}
+.say .face{flex:none;width:68px;text-align:center;font-size:13px;font-weight:800;color:var(--muted)}
+.say :is(svg,img){width:64px;height:64px;display:block;margin:0 auto 2px}
+.bubble{flex:1;border:2px solid var(--line);border-radius:18px;padding:16px 20px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.bubble.small{padding:12px 16px}
+.chat{display:flex;flex-direction:column;gap:10px;max-height:360px;overflow:auto;border:2px solid var(--line);border-radius:18px;padding:14px}
+.chat .fern{display:flex;gap:10px;align-items:flex-start}
+.chat .fern :is(svg,img){width:44px;height:44px;flex:none}
+.chat .txt{background:var(--panel);border-radius:16px;padding:10px 14px;max-width:85%;display:flex;flex-direction:column;gap:6px}
+.chat .me{align-self:flex-end;background:#DDF4FF;border-radius:16px;padding:10px 14px;max-width:80%;font-weight:700}
+.card.on{border-color:var(--sky);background:#F2FAFF}
+.hpanel{border:2px solid var(--line);border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.hpanel .who{display:flex;gap:10px;align-items:center;font-weight:800}
+.hpanel .who :is(svg,img){width:40px;height:40px}
+.hpanel .swatch{width:34px;height:14px;border-radius:6px;display:inline-block}
+.chat mark{color:inherit;border-radius:6px;padding:1px 3px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.chat.hl-dot mark{background:#FFE4BF}
+.chat.hl-bo mark{background:#EAD9C6}
+.chat.hl-kip mark{background:#FFD9E6}
+.hpanel .swatch{width:34px;height:14px;border-radius:6px;display:inline-block}
+.hpanel .asks{display:flex;gap:8px;flex-wrap:wrap}
+.card.ping{border-style:dashed;border-color:var(--sky)}
+.note{display:flex;flex-direction:column;gap:6px;padding-top:12px;border-top:2px dashed var(--line)}
+.note:first-of-type{border-top:0;padding-top:0}
+.note.new{border:2px dashed var(--sky);border-radius:14px;padding:12px}
+.note .said{font-size:15px;font-weight:800;color:var(--muted)}
+.note .tag{align-self:flex-start;font-size:13px;font-weight:800;color:var(--sky-deep);background:#DDF4FF;border-radius:8px;padding:1px 8px}
+.note :is(svg,img){width:200px;max-width:100%;height:auto;border-radius:12px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.ask{display:flex;gap:8px}
+.ask input{flex:1;min-width:0;border:2px solid var(--line);border-radius:14px;padding:10px 14px;font:inherit;color:inherit;background:var(--bg)}
+.ask input:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+.ask .primary{padding:8px 20px;font-size:16px;border-bottom-width:4px}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.card{border:2px solid var(--line);border-bottom-width:5px;border-radius:18px;background:var(--bg);padding:14px 10px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
+.card:hover{background:var(--panel)}
+.card :is(svg,img){width:96px;height:96px}
+.card b{font-weight:800}
+.card span{font-size:15px;color:var(--muted);font-weight:700}
+.card.asked{background:var(--panel)}
+.card.sel{border-color:#84D8FF;background:#DDF4FF}
+.card .mark{font-size:13px;font-weight:800;color:var(--sky-deep);min-height:18px}
+.answers{display:flex;flex-direction:column;gap:12px}
+.answers .say :is(svg,img){width:48px;height:48px}
+.answers .say .face{width:56px}
+.primary{align-self:center;background:var(--leaf);color:#fff;border:0;border-bottom:5px solid var(--leaf-deep);border-radius:16px;padding:12px 28px;font-weight:800;font-size:18px}
+.primary:disabled{background:var(--line);border-bottom-color:#CFCFCF;color:var(--muted);cursor:not-allowed}
+.ghost{border:2px solid var(--line);border-bottom-width:4px;background:var(--bg);border-radius:12px;padding:6px 14px;font-weight:800;font-size:15px}
+.basket{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.basket div{background:var(--panel);border-radius:18px;padding:12px;text-align:center;font-weight:700;font-size:15px}
+.basket :is(svg,img){width:64px;height:64px;display:block;margin:0 auto}
+.pot{background:var(--bg);padding:8px 20px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.pop{display:flex;gap:16px;justify-content:center}
+.pop :is(svg,img){width:76px;height:76px}
+.pot > svg{width:240px;max-width:100%;height:auto}
+.checks{display:flex;flex-direction:column;gap:12px}
+.check{border:2px solid var(--line);border-radius:18px;padding:14px 18px;display:grid;grid-template-columns:auto 1fr auto;gap:6px 14px;align-items:center}
+.check .ic{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;background:var(--leaf)}
+.check.no .ic{background:none;width:48px;height:48px;border-radius:0}
+.check.no .ic :is(svg,img){width:48px;height:48px}
+.check b{font-weight:800}
+.check .path{grid-column:2 / -1;color:var(--muted);font-size:15px;font-weight:700}
+.end{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.note{color:var(--muted);font-size:13px;text-align:center;font-weight:700}
+@media (max-width:520px){
+  .row3,.basket{grid-template-columns:1fr}
+  .check{grid-template-columns:auto 1fr}
+  .check .ghost{grid-column:2}
+  h1{font-size:25px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">Night Light Potion</div>
+    <div class="steps" id="steps" aria-label="Progress"></div>
+  </div>
+  <main id="app" style="display:flex;flex-direction:column;gap:28px"></main></div>
+
+<script>
+const INK = '#4B4B4B';
+
+/* ---------- drawings ---------- */
+const IMG = (n,alt)=>`<img src="img/${n}.png" alt="${alt||''}" draggable="false">`;
+function granny(){ return IMG('witch-fern'); }
+function helper(id){ return IMG({dot:'helper-dot-fox', bo:'helper-bo-bear', kip:'helper-rae-rabbit'}[id]); }
+function leaf(shape,color){ return IMG(`leaf-${shape==='round'?'round':'pointy'}-${color==='#FFC800'?'gold':'silver'}`); }
+function berry(size,color){ return IMG(`berry-${size}-${color==='#1CB0F6'?'blue':'red'}`); }
+function stone(shape,color){ return IMG(`stone-${shape}-${color==='#4B4B4B'?'black':'grey'}`); }
+function creature(key){
+  return key==='smooth' ? IMG('fail-lump-frog','Lump frog') : key==='glow' ? IMG('fail-gloom-blob','Gloom blob') : IMG('fail-shiver-blob','Shiver blob');
+}
+function pot(r){
+  const liquid = r ? (r.glow ? '#FFE37A' : '#9AA3AD') : '#C9D0D6';
+  const halo = r && r.glow ? `<circle cx="512" cy="221" r="400" fill="#FFE37A" opacity=".35"/><circle cx="512" cy="221" r="300" fill="#FFE37A" opacity=".5"/>` : '';
+  const lumps = r && !r.smooth ? `<circle cx="400" cy="222" r="32" fill="#6B7480"/><circle cx="540" cy="206" r="25" fill="#6B7480"/><circle cx="640" cy="230" r="29" fill="#6B7480"/>` : '';
+  const steam = r && r.warm ? `<path d="M410 130q-40 -60 0 -110q40 -55 0 -110M614 130q-40 -60 0 -110q40 -55 0 -110" fill="none" stroke="#C9D0D6" stroke-width="22" stroke-linecap="round"/>` : '';
+  return `<svg viewBox="0 -200 1024 1224" role="img" aria-label="The potion pot">${halo}<image href="img/pot-empty.png" width="1024" height="1024"/><ellipse cx="512" cy="221" rx="284" ry="55" fill="${liquid}"/>${lumps}${steam}</svg>`;
+}
+
+/* ---------- content ---------- */
+const HL = {dot:'#FFE4BF', bo:'#EAD9C6', kip:'#FFD9E6'};
+const LENS = {
+  dot:{ guide:'I marked the facts in what Granny Fern said. Look at each one. Is it about today, or about before?',
+        asks:[{k:'today', t:'Is it still like that today?'}] },
+  kip:{ guide:'I marked her reasons. Does each reason fit the thing she wants you to pick?',
+        asks:[{k:'reason', t:'Why do you think so?'}] },
+  bo:{ guide:'I marked who saw it and who said it. Were they there? When?',
+        asks:[{k:'who', t:'Who saw it, and when?'},{k:'other', t:'Has anyone told you something different?'}] }
+};
+const MARKS = [
+  { dot:['round and silver','tall tree by the pond','silver','gold','round'],
+    bo:['I pick them every autumn','I pick them','I saw them myself','every autumn','last autumn','one year ago','this year','this morning','the owl[^.!?]*told me','owl','not gone to look','not been to the tree'],
+    kip:['because [^.!?]*','always been silver','always picked [^.!?]*','every autumn for this potion'] },
+  { dot:['red berries','blue berries','blue lights','they glow','shine so brightly','shine','fireflies','glow'],
+    bo:['I walk past them every day','I see them myself','every day','at noon','at night','home before dark','never seen them at night','never gone to look','hill owl','owl'],
+    kip:['because [^.!?]*','I am sure of it','must glow','They shine so brightly at noon'] },
+  { dot:['flat black one','flat black stone','flat black','round grey stone','round grey','stays warm all night','warm all night','at dawn'],
+    bo:["fisherman['’]s cousin",'cousin','night guard','told me','at the market','last spring','from far away','every night','never tested'],
+    kip:['because [^.!?]*','told me so','sounded (?:so|very) sure','never tested [^.!?]*'] }
+];
+const EXTRA = [
+  { sheet:'- Another thing you heard: this morning the owl who lives in the moon tree told you its leaves turned gold this year. You have not gone to look. You still think of them as silver, because silver is what you have always picked.',
+    today:'Hmm. I have not been to the tree this year. My last trip was last autumn.',
+    reason:'Because I pick them every autumn, and they have always been silver.',
+    who:'I saw them myself. But that was last autumn, one year ago.',
+    other:'Well, the owl who lives in that tree told me this morning that its leaves are gold this year. I have not gone to look.' },
+  { sheet:'- Another thing you heard: the hill owl told you that at night she sees small blue lights among the bushes on the hill. You think those may be fireflies. You have never gone to look at night.',
+    today:'They shine at noon every day. I have never seen them at night. I am always home before dark.',
+    reason:'Because they shine so brightly at noon. Something that bright must glow.',
+    who:'I see them myself every day at noon, on my way to the market.',
+    other:'The hill owl says she sees small blue lights on the hill at night. I think those are fireflies. I have never gone to look.' },
+  { sheet:'- Another thing you heard: the night guard, who sits by the river every night, once told you she warms her hands on a round grey stone at dawn. You did not think much about it, because the cousin sounded so sure.',
+    today:'I have never tested the stone myself, dear.',
+    reason:"Because the fisherman's cousin told me so. He sounded very sure.",
+    who:"The fisherman's cousin told me at the market last spring. He was visiting from far away.",
+    other:'The night guard sits by the river every night. She once told me she warms her hands on a round grey stone at dawn.' }
+];
+function CANNED(i,k){ return ROUNDS[i].canned[k] || EXTRA[i][k]; }
+function markRe(i,h){ return new RegExp('('+MARKS[i][h].join('|')+')','gi'); }
+function hl(text){
+  const h = S.tab[S.i], t = esc(text);
+  return h ? t.replace(markRe(S.i,h), '<mark>$1</mark>') : t;
+}
+function countMarks(i,h,from){
+  return S.chat[i].slice(from).filter(m=>m.who==='fern' && !m.pending)
+    .reduce((n,m)=>n+((m.text.match(markRe(i,h))||[]).length),0);
+}
+function fresh(i,h){ return (h in S.seen[i]) ? countMarks(i,h,S.seen[i][h]) : 0; }
+const HELPERS = {
+  dot:{name:'Dot', q:'What are the facts?'},
+  kip:{name:'Rae', q:'What is her reason?'},
+  bo:{name:'Bo', q:'Who said so?'}
+};
+const ROUNDS = [
+  { key:'smooth',
+    need:'A leaf from the moon tree. It makes the potion smooth.',
+    says:['First, find a moon tree leaf.','The moon tree is the tall tree by the pond.','Its leaves are round and silver.','I pick them every autumn for this potion.'],
+    sheet:`- Your advice: the moon tree is the tall tree by the pond. Its leaves are round and silver.
+- How you know: you pick the leaves yourself every autumn for this potion. Your last trip to the tree was last autumn, one year ago. You have not been to the tree yet this year.
+- Why the potion needs it: a moon leaf melts in the pot and makes the potion smooth, with no lumps.
+- Small stories you may tell: your own grandmother taught you this potion when you were small. Owls like to sleep in the moon tree. You once dropped your hat in the pond while picking leaves.
+- You know nothing about any other leaves.`,
+    canned:{more:'The moon tree is the tall one by the pond. Owls like to sleep in it. I pick its leaves every autumn.', why:'A moon leaf melts in the pot. It makes the potion smooth, with no lumps.', story:'My grandmother taught me this potion when I was small. Once I dropped my hat in the pond while picking leaves!'},
+    answers:{
+      dot:'I went to the tall tree by the pond this morning. Its leaves are round. This year they are gold. I saw no silver leaves on it.',
+      kip:'Granny picks these leaves every autumn. That is a good reason to know their shape. Leaf colours can change from year to year.',
+      bo:'Granny picked the leaves herself. Her last trip to the tree was one year ago.'
+    },
+    options:[
+      {id:'a', label:'Round silver leaf', art:leaf('round','#C9D0D6')},
+      {id:'b', label:'Round gold leaf', art:leaf('round','#FFC800')},
+      {id:'c', label:'Pointy silver leaf', art:leaf('pointy','#C9D0D6')}
+    ],
+    correct:'b', good:'The potion is smooth.', bad:'A lump frog hopped out. The potion is lumpy.' },
+  { key:'glow',
+    need:'A berry that glows in the dark. It makes the potion glow.',
+    says:['Next, take the red berries from the hill.','They glow, I am sure of it.','They shine so brightly at noon.','I walk past them every day.'],
+    sheet:`- Your advice: take the red berries from the hill. You are sure they glow.
+- How you know: they shine very brightly at noon. You walk past them every day at noon on your way to the market. You are always home before dark, so you have never seen them at night.
+- Why the potion needs it: a glowing berry makes the whole potion glow.
+- Small stories you may tell: the hill is windy and you once chased your shopping basket all the way down it. The birds love the berries.
+- You have noticed small blue berries on the hill too, but you never looked at them closely and know nothing about them.`,
+    canned:{more:'The red berries grow all over the hill. The birds love them. I walk past them every day at noon.', why:'A glowing berry makes the whole potion glow.', story:'That hill is so windy! Once my shopping basket rolled all the way down and I had to chase it.'},
+    answers:{
+      dot:'I went to the hill. The red berries are there. They do shine at noon. That part is true.',
+      kip:'Shining at noon tells us they look bright in sunlight. I put each berry in a dark box. The small blue one gave light. The red ones gave none.',
+      bo:'Granny sees the berries herself, every day. She is always home before dark.'
+    },
+    options:[
+      {id:'a', label:'Small red berry', art:berry('small','#FF4B4B')},
+      {id:'b', label:'Small blue berry', art:berry('small','#1CB0F6')},
+      {id:'c', label:'Big red berry', art:berry('big','#FF4B4B')}
+    ],
+    correct:'b', good:'The potion glows in the dark.', bad:'A gloom blob floated out. The potion does not glow.' },
+  { key:'warm',
+    need:'A stone that stays warm all night. It keeps the potion warm.',
+    says:['Last, you need a warm stone.','Take the flat black one from the river.','It stays warm all night.','The fisherman\'s cousin told me so.'],
+    sheet:`- Your advice: take the flat black stone from the river. It stays warm all night.
+- How you know: the fisherman's cousin told you at the market last spring. He was visiting from far away. You have never tested the stone yourself. You do not know how he knows.
+- Why the potion needs it: a warm stone at the bottom of the pot keeps the potion warm until morning.
+- Small stories you may tell: you like to sit by the river and listen to the frogs. The fisherman once gave you a fish as long as your arm.
+- You know nothing about any other stones.`,
+    canned:{more:'The river has many stones. The fisherman\'s cousin told me about the flat black one at the market last spring.', why:'A warm stone at the bottom of the pot keeps the potion warm until morning.', story:'I like to sit by the river and listen to the frogs. The fisherman once gave me a fish as long as my arm!'},
+    answers:{
+      dot:'It is daytime now. All the river stones feel warm in the sun. I cannot tell yet which one stays warm at night.',
+      kip:'Granny gives one reason: someone told her. That reason is only as good as the person who said it.',
+      bo:'The fisherman\'s cousin lives far away. He has never been to this river. The night guard sits by the river every night. She says the round grey stone is still warm at dawn.'
+    },
+    options:[
+      {id:'a', label:'Flat black stone', art:stone('flat','#4B4B4B')},
+      {id:'b', label:'Round grey stone', art:stone('round','#AFAFAF')},
+      {id:'c', label:'Flat grey stone', art:stone('flat','#AFAFAF')}
+    ],
+    correct:'b', good:'The potion stays warm.', bad:'A shiver blob popped out. The potion went cold.' }
+];
+
+/* ---------- state ---------- */
+let S;
+function reset(){
+  S = {screen:'start', i:0, asked:[[],[],[]], pick:[null,null,null], draft:null, chat:[[],[],[]], busy:false, tab:[null,null,null], seen:[{},{},{}], toBottom:true, history:[[],[],[]], stirred:false, redo:false, log:[], t0:Date.now()};
+}
+function log(type, data){ S.log.push(Object.assign({t:Math.round((Date.now()-S.t0)/1000), type}, data||{})); }
+function opt(i,id){ return ROUNDS[i].options.find(o=>o.id===id); }
+function names(list){
+  const n = list.map(h=>HELPERS[h].name);
+  if(n.length<2) return n.join('');
+  return n.slice(0,-1).join(', ')+' and '+n[n.length-1];
+}
+
+/* ---------- talking to Granny Fern ---------- */
+const PERSONA = `You are Granny Fern, a kind old forest witch in a children's game. You are teaching a child of about 7 to 10 years to make a Night Light Potion.
+
+Rules:
+- Reply in 1 to 3 short, simple English sentences. Be warm and a little playful.
+- You may tell small stories about the forest and your life, using the notes below.
+- About the ingredient, say only what is in the notes. Never add new facts about its colour, shape, place or power.
+- If the child asks something the notes do not cover, say you are not sure.
+- You like your own advice, and you always answer honestly from the notes.
+- If the child asks how you know, when you last saw it, whether it is still like that today, whether you are sure, or whether anyone told you something different, tell them the matching part of your notes plainly, including the other thing you heard. Say when you have not checked something yourself. Do not bring up the other thing you heard before the child asks one of these.
+- Dot, Bo and Rae are the child's helpers. They only help the child read your words. Never say which ingredient is the right one to pick. The child decides.
+- If the child talks about something unrelated or unsafe, gently bring them back to the potion. Never ask for personal information.
+- Plain sentences only. No lists, no emojis, no dashes.`;
+const CHIPS = [{k:'more', t:'Tell me more about it.'},{k:'why', t:'Why does the potion need it?'},{k:'story', t:'Tell me a story.'}];
+const TIRED = 'I am a little tired, dear. That is all I can tell you for now.';
+let sampler = null;
+async function initSampler(){
+  if(sampler) return;
+  try{ if(window.claude && window.claude.use){ sampler = await window.claude.use('sample'); if(sampler && S.screen==='round') render(); } }catch(e){}
+}
+function esc(t){ return String(t).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function enter(i){
+  S.i = i;
+  if(!S.chat[i].length) S.chat[i].push({who:'fern', text:ROUNDS[i].says.join(' '), opening:true});
+}
+function fernPrompt(i){
+  const R = ROUNDS[i];
+  const lines = S.chat[i].filter(m=>!m.pending).map(m=>(m.who==='fern'?'Fern: ':'Child: ')+m.text).join('\n');
+  return `${PERSONA}\n\nWHAT YOU ARE TEACHING NOW\nThe recipe needs: ${R.need}\n\nYOUR NOTES (your only knowledge about this ingredient)\n${R.sheet}\n${EXTRA[i].sheet}\n\nCONVERSATION SO FAR\n${lines}\n\nWrite Fern's next reply only, with no name label.`;
+}
+async function say(text, cannedKey){
+  text = String(text||'').trim().slice(0,200);
+  if(!text || S.busy) return;
+  const i = S.i, R = ROUNDS[i];
+  S.chat[i].push({who:'me', text}); S.toBottom = true;
+  let reply;
+  if(!sampler){
+    reply = cannedKey ? CANNED(i,cannedKey) : TIRED;
+    S.chat[i].push({who:'fern', text:reply});
+    if(S.tab[i]) S.seen[i][S.tab[i]] = S.chat[i].length;
+    render();
+  } else {
+    const msg = {who:'fern', text:'', pending:true};
+    S.busy = true;
+    const prompt = fernPrompt(i);
+    S.chat[i].push(msg); render();
+    try{
+      const out = await sampler(prompt, {cache:false, modelTier:'quick', onText:({text})=>{ const el=document.getElementById('live'); if(el){ el.textContent=text; const c=document.getElementById('chat'); if(c) c.scrollTop=c.scrollHeight; } }});
+      reply = (out && out.text ? out.text : '').trim() || TIRED;
+    }catch(e){
+      if(e && e.code==='not_granted') sampler = null;
+      reply = cannedKey ? CANNED(i,cannedKey) : TIRED;
+    }
+    msg.text = reply; msg.pending = false; S.busy = false; S.toBottom = true;
+    if(S.tab[i]) S.seen[i][S.tab[i]] = S.chat[i].length;
+    if(S.screen==='round' && S.i===i) render();
+  }
+  log('say',{round:i+1, child:text, fern:reply});
+}
+function chatView(){
+  const R = ROUNDS[S.i];
+  const msgs = S.chat[S.i].map((m,k)=>{
+    if(m.who==='me') return `<div class="me">${esc(m.text)}</div>`;
+    const body = m.opening ? R.says.map(x=>`<p>${hl(x)}</p>`).join('')
+               : m.pending ? `<p id="live">...</p>` : `<p>${hl(m.text)}</p>`;
+    return `<div class="fern" data-mi="${k}">${granny()}<div class="txt">${body}</div></div>`;
+  }).join('');
+  const chips = CHIPS.map(c=>`<button class="ghost" data-act="chip" data-k="${c.k}" ${S.busy?'disabled':''}>${c.t}</button>`).join('');
+  const form = sampler ? `<form class="ask" id="askForm"><input id="askInput" maxlength="200" autocomplete="off" placeholder="Ask Granny Fern anything about it" aria-label="Your question for Granny Fern" ${S.busy?'disabled':''}><button class="primary" ${S.busy?'disabled':''}>Send</button></form>` : '';
+  return `<div class="chat hl-${S.tab[S.i]||'none'}" id="chat" aria-live="polite">${msgs}</div><div class="chips">${chips}</div>${form}`;
+}
+
+/* ---------- views ---------- */
+const app = document.getElementById('app');
+const steps = document.getElementById('steps');
+
+function bottle(state){
+  const stroke = state==='now' ? '#1CB0F6' : '#AFAFAF', fill = state==='picked' ? '#E5E5E5' : 'none';
+  return `<svg viewBox="0 0 40 48" aria-hidden="true"><path d="M15 4h10v10a15 15 0 1 1-10 0z" fill="${fill}" stroke="${stroke}" stroke-width="2.5" stroke-dasharray="4 3" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+}
+function drawSteps(){
+  const done = S.screen==='pot' && S.stirred, r = done ? results() : null;
+  let h='';
+  for(let k=0;k<3;k++){
+    const cls = S.screen==='round' && S.i===k ? 'now' : (S.pick[k] ? 'done' : '');
+    h += `<i class="${cls}"></i>`;
+  }
+  if(!done) h += bottle(S.screen==='pot' ? 'now' : 'empty');
+  else if(r.smooth && r.glow && r.warm) h += IMG('potion-success','Night Light Potion');
+  else h += ROUNDS.filter(R=>!r[R.key]).map(R=>creature(R.key)).join('');
+  if(S.screen==='round') h += `<span>Ingredient ${S.i+1} of 3</span>`;
+  steps.innerHTML = h;
+}
+
+function viewStart(){
+  return `<img class="hero" src="img/witch-fern.png" alt="Granny Fern">
+  <h1>Help Granny Fern make a Night Light Potion</h1>
+  <p class="lead">You will collect three ingredients. Granny Fern tells you what to look for, and you can ask her more. Three helpers can tell you more about what she says.</p>
+  <div class="need"><small>THE RECIPE SAYS</small>A good Night Light Potion is smooth, glows in the dark, and stays warm.</div>
+  <div class="row3">${Object.keys(HELPERS).map(h=>`<div class="card" style="border-bottom-width:2px">${helper(h)}<b>${HELPERS[h].name}</b><span>${HELPERS[h].q}</span></div>`).join('')}</div>
+  <button class="primary" data-act="start">Start</button>`;
+}
+
+function viewRound(){
+  const R = ROUNDS[S.i], asked = S.asked[S.i];
+  const on = S.tab[S.i];
+  const helpers = Object.keys(HELPERS).map(h=>{ const nw = on!==h && fresh(S.i,h)>0; return `
+    <button class="card ${asked.includes(h)?'asked':''} ${on===h?'on':''} ${nw?'ping':''}" data-act="ask" data-h="${h}">
+      ${helper(h)}<b>${HELPERS[h].name}</b><span>${HELPERS[h].q}</span>
+      <span class="mark">${nw ? 'New words to look at' : (asked.includes(h)?'Asked':'')}</span>
+    </button>`; }).join('');
+  const answers = on ? `<div class="hpanel">
+      <div class="who">${helper(on)}<span>${HELPERS[on].name}</span><span class="swatch" style="background:${HL[on]}" aria-hidden="true"></span></div>
+      <p>${LENS[on].guide}</p>
+      <p class="said" style="font-size:15px;font-weight:800;color:var(--muted)">You can ask Granny Fern:</p>
+      <div class="asks">${LENS[on].asks.map(a=>`<button class="ghost" data-act="hq" data-k="${a.k}" ${S.busy?'disabled':''}>${a.t}</button>`).join('')}</div>
+    </div>` : '';
+  const options = R.options.map(o=>`
+    <button class="card ${S.draft===o.id?'sel':''}" role="radio" aria-checked="${S.draft===o.id}" data-act="choose" data-id="${o.id}">
+      ${o.art}<b>${o.label}</b>
+    </button>`).join('');
+  return `<h1>Talk to Granny Fern, then choose</h1>
+  <section>
+    <div class="need"><small>THE RECIPE NEEDS</small>${R.need}</div>
+    ${chatView()}
+  </section>
+  <section>
+    <h2>Ask the helpers</h2>
+    <div class="row3">${helpers}</div>
+    <div class="answers" aria-live="polite">${answers}</div>
+  </section>
+  <section>
+    <h2>Choose the ingredient</h2>
+    <div class="row3" role="radiogroup" aria-label="Ingredients">${options}</div>
+    <button class="primary" data-act="confirm" ${S.draft?'':'disabled'}>${S.redo?'Back to the pot':'Put it in the basket'}</button>
+  </section>`;
+}
+
+function results(){
+  const r = {};
+  ROUNDS.forEach((R,k)=>{ r[R.key] = S.pick[k]===R.correct; });
+  return r;
+}
+function pathText(k){
+  const asked = S.asked[k], hist = S.history[k];
+  const last = opt(k,hist[hist.length-1]).label.toLowerCase();
+  const askedTxt = asked.length ? `You asked ${names(asked)}.` : 'You did not ask a helper.';
+  if(hist.length>1){
+    const first = opt(k,hist[0]).label.toLowerCase();
+    return `${askedTxt} First you picked the ${first}. Later you picked the ${last}.`;
+  }
+  return `${askedTxt} You picked the ${last}.`;
+}
+function viewPot(){
+  const basket = ROUNDS.map((R,k)=>{ const o=opt(k,S.pick[k]); return `<div>${o.art}${o.label}</div>`; }).join('');
+  if(!S.stirred){
+    return `<h1>Put everything in the pot</h1>
+    <p class="lead">A good Night Light Potion is smooth, glows in the dark, and stays warm.</p>
+    <div class="basket">${basket}</div>
+    <div class="pot">${pot(null)}</div>
+    <button class="primary" data-act="stir">Stir the potion</button>`;
+  }
+  const r = results(), all = r.smooth && r.glow && r.warm;
+  const checks = ROUNDS.map((R,k)=>{
+    const ok = r[R.key];
+    return `<div class="check ${ok?'':'no'}">
+      <div class="ic">${ok?'✓':creature(R.key)}</div>
+      <b>${ok?R.good:R.bad}</b>
+      <button class="ghost" data-act="redo" data-k="${k}">Look again</button>
+      <div class="path">${pathText(k)}</div>
+    </div>`;
+  }).join('');
+  return `<h1>${all?'Your Night Light Potion is ready!':'Oh no! Something came out of the pot'}</h1>
+  <div class="pot">${all?'<img class="win" src="img/potion-success.png" alt="A finished Night Light Potion">':`<div class="pop">${ROUNDS.filter(R=>!r[R.key]).map(R=>creature(R.key)).join('')}</div>`}${pot(r)}</div>
+  <div class="checks">${checks}</div>
+  <div class="end">
+    <button class="ghost" data-act="again">Play again</button>
+    <button class="ghost" data-act="copy" id="copyBtn">Copy play log</button>
+  </div>`;
+}
+
+function render(){
+  drawSteps();
+  const old = document.getElementById('chat');
+  const keep = old && !S.toBottom ? old.scrollTop : null;
+  app.innerHTML = S.screen==='start' ? viewStart() : S.screen==='round' ? viewRound() : viewPot();
+  const c = document.getElementById('chat'); if(c) c.scrollTop = keep!==null ? keep : c.scrollHeight;
+  S.toBottom = false;
+}
+function showMarks(from){
+  const c = document.getElementById('chat'); if(!c) return;
+  const rows = [...c.querySelectorAll('[data-mi]')].filter(r=>+r.dataset.mi>=from && r.querySelector('mark'));
+  const row = rows[0] || c.querySelector('[data-mi] mark');
+  if(row){ const el = row.closest('[data-mi]') || row; c.scrollTop = Math.max(0, el.offsetTop - c.offsetTop - 8); }
+}
+function go(screen){ S.screen = screen; S.toBottom = true; render(); window.scrollTo(0,0); }
+
+/* ---------- actions ---------- */
+app.addEventListener('click', e=>{
+  const b = e.target.closest('[data-act]'); if(!b) return;
+  const act = b.dataset.act;
+  if(act==='start'){ log('start'); enter(0); S.draft=null; go('round'); }
+  else if(act==='chip'){ const c = CHIPS.find(x=>x.k===b.dataset.k); say(c.t, c.k); }
+  else if(act==='ask'){
+    const h = b.dataset.h, i = S.i;
+    const first = !(h in S.seen[i]);
+    const nw = first ? 0 : countMarks(i,h,S.seen[i][h]);
+    const from = first ? 0 : S.seen[i][h];
+    S.seen[i][h] = S.chat[i].filter(m=>!m.pending).length;
+    S.tab[i] = h;
+    if(!S.asked[i].includes(h)) S.asked[i].push(h);
+    log('ask',{round:i+1, helper:HELPERS[h].name, repeat:!first, newMarks:nw, beforeFirstPick:S.history[i].length===0});
+    render(); showMarks(nw>0 ? from : 0);
+  }
+  else if(act==='hq'){
+    const h = S.tab[S.i]; const a = LENS[h].asks.find(x=>x.k===b.dataset.k);
+    log('helperQuestion',{round:S.i+1, helper:HELPERS[h].name, question:a.t});
+    say(a.t, a.k);
+  }
+  else if(act==='choose'){ S.draft = b.dataset.id; render(); }
+  else if(act==='confirm'){
+    if(!S.draft || S.busy) return;
+    S.pick[S.i] = S.draft; S.history[S.i].push(S.draft);
+    log('pick',{round:S.i+1, item:opt(S.i,S.draft).label, asked:S.asked[S.i].map(h=>HELPERS[h].name)});
+    S.draft = null;
+    if(S.redo || S.i===2){ S.redo=false; S.stirred=false; go('pot'); }
+    else { enter(S.i+1); go('round'); }
+  }
+  else if(act==='stir'){ S.stirred=true; log('stir',results()); render(); }
+  else if(act==='redo'){ enter(+b.dataset.k); S.redo=true; S.draft=S.pick[S.i]; log('lookAgain',{round:S.i+1}); go('round'); }
+  else if(act==='again'){ reset(); go('start'); }
+  else if(act==='copy'){
+    const text = JSON.stringify(S.log,null,1);
+    const done = ok=>{ b.textContent = ok ? 'Copied' : 'Copy failed'; };
+    try{ navigator.clipboard.writeText(text).then(()=>done(true),()=>done(false)); }catch(err){ done(false); }
+  }
+});
+
+app.addEventListener('submit', e=>{
+  e.preventDefault();
+  const inp = document.getElementById('askInput'); if(!inp) return;
+  const v = inp.value; inp.value=''; say(v);
+});
+reset(); render();
+initSampler(); window.addEventListener('load', initSampler);
+</script>
+</body>
+</html>
