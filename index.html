@@ -50,7 +50,11 @@ section{display:flex;flex-direction:column;gap:14px}
 .say :is(svg,img){width:64px;height:64px;display:block;margin:0 auto 2px}
 .bubble{flex:1;border:2px solid var(--line);border-radius:18px;padding:16px 20px;display:flex;flex-direction:column;gap:8px;min-width:0}
 .bubble.small{padding:12px 16px}
-.chat{display:flex;flex-direction:column;gap:10px;max-height:360px;overflow:auto;border:2px solid var(--line);border-radius:18px;padding:14px}
+.chatbox{border:2px solid var(--line);border-radius:18px;overflow:hidden;background:var(--bg)}
+.chat{display:flex;flex-direction:column;gap:10px;max-height:360px;overflow-y:auto;padding:14px;scrollbar-width:thin;scrollbar-color:#CFCFCF transparent}
+.chat::-webkit-scrollbar{width:10px}
+.chat::-webkit-scrollbar-track{background:transparent;margin:14px 0}
+.chat::-webkit-scrollbar-thumb{background:#CFCFCF;border-radius:8px;border:3px solid var(--bg)}
 .chat .fern{display:flex;gap:10px;align-items:flex-start}
 .chat .fern :is(svg,img){width:44px;height:44px;flex:none}
 .chat .txt{background:var(--panel);border-radius:16px;padding:10px 14px;max-width:85%;display:flex;flex-direction:column;gap:6px}
@@ -292,9 +296,20 @@ Rules:
 const CHIPS = [{k:'more', t:'Tell me more about it.'},{k:'why', t:'Why does the potion need it?'},{k:'story', t:'Tell me a story.'}];
 const TIRED = 'I am a little tired, dear. That is all I can tell you for now.';
 let sampler = null;
+let fernApi = false;
 async function initSampler(){
-  if(sampler) return;
-  try{ if(window.claude && window.claude.use){ sampler = await window.claude.use('sample'); if(sampler && S.screen==='round') render(); } }catch(e){}
+  if(sampler || fernApi) return;
+  try{ if(window.claude && window.claude.use){ sampler = await window.claude.use('sample'); } }catch(e){}
+  if(!sampler){
+    try{ const r = await fetch('api/fern', {cache:'no-store'}); if(r.ok){ const j = await r.json(); fernApi = !!(j && j.ready); } }catch(e){}
+  }
+  if((sampler || fernApi) && S.screen==='round') render();
+}
+async function askApi(i){
+  const history = S.chat[i].filter(m=>!m.pending && !m.opening).map(m=>({role: m.who==='me'?'user':'assistant', text:m.text}));
+  const r = await fetch('api/fern', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({round:i, history})});
+  if(!r.ok) throw new Error('api '+r.status);
+  const j = await r.json(); return j && j.text;
 }
 function esc(t){ return String(t).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 function enter(i){
@@ -312,7 +327,7 @@ async function say(text, cannedKey){
   const i = S.i, R = ROUNDS[i];
   S.chat[i].push({who:'me', text}); S.toBottom = true;
   let reply;
-  if(!sampler){
+  if(!sampler && !fernApi){
     reply = cannedKey ? CANNED(i,cannedKey) : TIRED;
     S.chat[i].push({who:'fern', text:reply});
     if(S.tab[i]) S.seen[i][S.tab[i]] = S.chat[i].length;
@@ -323,8 +338,12 @@ async function say(text, cannedKey){
     const prompt = fernPrompt(i);
     S.chat[i].push(msg); render();
     try{
-      const out = await sampler(prompt, {cache:false, modelTier:'quick', onText:({text})=>{ const el=document.getElementById('live'); if(el){ el.textContent=text; const c=document.getElementById('chat'); if(c) c.scrollTop=c.scrollHeight; } }});
-      reply = (out && out.text ? out.text : '').trim() || TIRED;
+      if(sampler){
+        const out = await sampler(prompt, {cache:false, modelTier:'quick', onText:({text})=>{ const el=document.getElementById('live'); if(el){ el.textContent=text; const c=document.getElementById('chat'); if(c) c.scrollTop=c.scrollHeight; } }});
+        reply = (out && out.text ? out.text : '').trim() || TIRED;
+      } else {
+        reply = String(await askApi(i) || '').trim() || TIRED;
+      }
     }catch(e){
       if(e && e.code==='not_granted') sampler = null;
       reply = cannedKey ? CANNED(i,cannedKey) : TIRED;
@@ -344,8 +363,8 @@ function chatView(){
     return `<div class="fern" data-mi="${k}">${granny()}<div class="txt">${body}</div></div>`;
   }).join('');
   const chips = CHIPS.map(c=>`<button class="ghost" data-act="chip" data-k="${c.k}" ${S.busy?'disabled':''}>${c.t}</button>`).join('');
-  const form = sampler ? `<form class="ask" id="askForm"><input id="askInput" maxlength="200" autocomplete="off" placeholder="Ask Granny Fern anything about it" aria-label="Your question for Granny Fern" ${S.busy?'disabled':''}><button class="primary" ${S.busy?'disabled':''}>Send</button></form>` : '';
-  return `<div class="chat hl-${S.tab[S.i]||'none'}" id="chat" aria-live="polite">${msgs}</div><div class="chips">${chips}</div>${form}`;
+  const form = (sampler || fernApi) ? `<form class="ask" id="askForm"><input id="askInput" maxlength="200" autocomplete="off" placeholder="Ask Granny Fern anything about it" aria-label="Your question for Granny Fern" ${S.busy?'disabled':''}><button class="primary" ${S.busy?'disabled':''}>Send</button></form>` : '';
+  return `<div class="chatbox"><div class="chat hl-${S.tab[S.i]||'none'}" id="chat" aria-live="polite">${msgs}</div></div><div class="chips">${chips}</div>${form}`;
 }
 
 /* ---------- views ---------- */
